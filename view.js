@@ -4,6 +4,8 @@
 
 // Event listner for clicks on links in a browser action popup.
 // Open the link in a new tab of the current window.
+
+var count;
 function onAnchorClick(event) {
   chrome.tabs.create({
     selected: true,
@@ -11,7 +13,6 @@ function onAnchorClick(event) {
   });
   return false;
 }
-
 // Given an array of URLs, build a DOM list of those URLs in the
 // browser action popup.
 function buildPopupDom(divName, data) {
@@ -51,7 +52,7 @@ function buildTypedUrlList(divName) {
     },
     function(historyItems) {
       // For each history item, get details on all visits.
-      for (var i = 0; i < historyItems.length; ++i) {
+      for (var i = 0; i < historyItems.length; i++) {
         var url = historyItems[i].url;
         var processVisitsWithUrl = function(url) {
           // We need the url of the visited item to process the visit.
@@ -76,7 +77,7 @@ function buildTypedUrlList(divName) {
   // Callback for chrome.history.getVisits().  Counts the number of
   // times a user visited a URL by typing the address.
   var processVisits = function(url, visitItems) {
-    for (var i = 0, ie = visitItems.length; i < ie; ++i) {
+    for (var i = 0, ie = visitItems.length; i < ie; i++) {
       // Ignore items unless the user typed the URL.
       if (visitItems[i].transition != 'typed') {
         continue;
@@ -87,6 +88,7 @@ function buildTypedUrlList(divName) {
       }
 
       urlToCount[url]++;
+        count = urlToCount[url];
     }
 
     // If this is the final outstanding call to processVisits(),
@@ -105,15 +107,11 @@ function buildTypedUrlList(divName) {
       urlArray.push(url);
     }
 
-    // Sort the URLs by the number of times the user typed them.
-    urlArray.sort(function(a, b) {
-      return urlToCount[b] - urlToCount[a];
-    });
-
     buildPopupDom(divName, urlArray.slice(0, 10));
   };
 }
 
 document.addEventListener('DOMContentLoaded', function () {
   buildTypedUrlList("typedUrl_div");
+    document.getElementById('count_div').innerHTML = count;
 });
